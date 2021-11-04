@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include "main.h"
 #define TOKEN_LEN 16
@@ -19,22 +20,25 @@ int main(int argc __attribute__((unused)), char *argv[])
 	size_t len = 0;
 	int status;
 
+	signal(SIGINT, SIG_IGN);
 	while (1)
 	{
-		/*if (isatty(STDIN_FILENO))*/
-		printf("($) ");
+		fflush(NULL);
+		if (isatty(STDIN_FILENO))
+			print("($) ");
 		nline = getline(&line, &len, stdin);
-		if (nline == -1)
+		if (nline < 0)
 			break;
 		line[nline - 1] = '\0';
 		tokens = tokenizer(line); /* tokenize*/
+		launch(tokens);
 		status = execute(tokens); /* execute*/
 		if (status != 0)
 			perror(argv[0]);
 		free_all(tokens);
 	}
 	free(line);
-	return (0);
+	return (status);
 }
 /**
  * readline - reads till new line
@@ -47,7 +51,7 @@ ssize_t readline(char **line)
 	size_t len = 0;
 
 	nline = getline(line, &len, stdin);
-	if (nline != -1)
+	if (nline >= 0)
 		(*line)[nline - 1] = '\0';
 
 	return (nline);
@@ -70,13 +74,13 @@ char **tokenizer(char *str)
 	token = strtok(str, DELIM);
 	while (token != NULL)
 	{
-		tokens[position++] = strdup(token);
+		tokens[position++] = _strdup(token);
 
 		/* If allocated memory isn't enough */
 		if (position > tok_size)
 		{
 			tok_size += TOKEN_LEN;
-			tokens = realloc(tokens, tok_size);
+			tokens = _realloc(tokens, position + 1, tok_size);
 			if (tokens == NULL)
 			{
 				for (i = 0; i < position; i++)
@@ -104,12 +108,13 @@ int execute(char **args)
 		return (0);
 
 	child_pid = fork();
-	if (child_pid == -1)
+	if (child_pid < 0)
 		return (1);
 
 	if (child_pid == 0)
 	{
-		if (execve(args[0], args, __environ) == -1)
+		signal(SIGINT, SIG_DFL);
+		if (execve(args[0], args, __environ) < 0)
 			return (1);
 	}
 	else
