@@ -1,9 +1,14 @@
 #ifndef GUARD_SHELL
 #define GUARD_SHELL
+#include <stddef.h>
 
-ssize_t readline(char **line);
+long int readline(char **line);
 char **tokenizer(char *str);
 int execute(char **args);
+
+/* utility functions */
+char *_getenv(char *str);
+int getpath(char **str);
 
 /* string manipulation */
 int _strcmp(char *s1, char *s2);
@@ -18,10 +23,8 @@ char *_memcpy(char *dest, char *src, unsigned int n);
 void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size);
 void free_all(char **tokens);
 
-
 /* misc */
 void print(char *s);
 int _putchar(char c);
-void signal_handler(int signo);
 
 #endif

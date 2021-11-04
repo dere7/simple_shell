@@ -1,9 +1,10 @@
-#include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-#include <signal.h>
+#include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include "main.h"
 #define TOKEN_LEN 16
 
@@ -20,23 +21,21 @@ int main(int argc __attribute__((unused)), char *argv[])
 	size_t len = 0;
 	int status;
 
-	signal(SIGINT, SIG_IGN);
-	while (1)
-	{
+	/*signal(SIGINT, SIG_IGN);*/
+	do {
 		fflush(NULL);
 		if (isatty(STDIN_FILENO))
-			print("($) ");
+			print("#cisfun$ ");
 		nline = getline(&line, &len, stdin);
 		if (nline < 0)
 			break;
 		line[nline - 1] = '\0';
 		tokens = tokenizer(line); /* tokenize*/
-		launch(tokens);
 		status = execute(tokens); /* execute*/
 		if (status != 0)
 			perror(argv[0]);
 		free_all(tokens);
-	}
+	} while (1);
 	free(line);
 	return (status);
 }
@@ -106,6 +105,8 @@ int execute(char **args)
 
 	if (args == NULL || args[0] == NULL)
 		return (0);
+	if (getpath(&args[0]) != 0)
+		return (1);
 
 	child_pid = fork();
 	if (child_pid < 0)
@@ -113,12 +114,49 @@ int execute(char **args)
 
 	if (child_pid == 0)
 	{
-		signal(SIGINT, SIG_DFL);
+		/*signal(SIGINT, SIG_DFL);*/
 		if (execve(args[0], args, __environ) < 0)
 			return (1);
 	}
 	else
 		wait(&status);
+
+	return (status);
+}
+/**
+ * getpath - gets path for str
+ * @str: path key
+ * Return: status
+ */
+int getpath(char **str)
+{
+	int status = 1;
+	char *path, *tok, *cmd;
+	struct stat statbuf;
+
+	if (stat(*str, &statbuf) == 0)
+		return (0);
+	/* get path */
+	path = _getenv("PATH");
+
+	/* find given string */
+	tok = strtok(path, ":");
+	while (tok != NULL)
+	{
+		/* find if the commmand exists in a path */
+		cmd = _strdup(tok);
+		_strcat(_strcat(cmd, "/"), *str);
+		if (stat(cmd, &statbuf) == 0)
+		{
+			free(*str);
+			*str = _strdup(cmd);
+			status = 0;
+			break;
+		}
+		free(cmd);
+		tok = strtok(NULL, ":");
+	}
+	free(path);
 
 	return (status);
 }
