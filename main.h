@@ -10,6 +10,26 @@ int execute(char **args);
 char *_getenv(char *str);
 int getpath(char **str);
 
+/* builtins */
+/**
+ * struct builtins_s - to manage builtin functions
+ * @name: name of a command
+ * @desc: short description about the function
+ * @func: the associated function
+ *
+ * Description: manages builtin functions
+ */
+typedef struct builtins_s
+{
+	char *name, *desc;
+	int (*func)(char **args);
+} builtin_t;
+int cd(char **args);
+int help(char **args, builtin_t *builtins);
+int cexit(char **args);
+int env(char **args);
+void printBuiltins(builtin_t b);
+
 /* string manipulation */
 int _strcmp(char *s1, char *s2);
 char *_strdup(char *str);

@@ -101,10 +101,26 @@ char **tokenizer(char *str)
 int execute(char **args)
 {
 	pid_t child_pid;
-	int status;
+	int status, i;
+	builtin_t builtin[] = {
+		{ "cd", "change current working directory: cd [<pathname>]", &cd },
+		{ "exit", "exits out of shell: exit [<status>]", &cexit},
+		{ "env", "prints enviromental variables: env", &env  },
+		{NULL, NULL, NULL}
+	};
 
 	if (args == NULL || args[0] == NULL)
 		return (0);
+
+	/* search for builtins */
+	if (_strcmp(args[0], "help") == 0)
+		return (help(args, builtin));
+
+	for (i = 0; builtin[i].name != NULL; i++)
+	{
+		if (_strcmp(args[0], builtin[i].name) == 0)
+			return (builtin[i].func(args));
+	}
 	if (getpath(&args[0]) != 0)
 		return (1);
 
