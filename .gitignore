@@ -1,0 +1,5 @@
+.vscode/
+bin/
+test/
+simple_shell.md
+test.c
