@@ -84,12 +84,11 @@ int env(char **args __attribute__((unused)))
 {
 	int i;
 
-	for (i = 0; __environ[i]; i++)
+	for (i = 0; __environ[i] != NULL; i++)
 	{
 		print(__environ[i]);
 		_putchar('\n');
 	}
-
 	return (0);
 }
 /**
