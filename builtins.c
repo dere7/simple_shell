@@ -32,16 +32,22 @@ int cd(char **args)
 /**
  * help - print help
  * @args: array of strings
- * @builtins: builtin
  * Return: status
  */
-int help(char **args, builtin_t *builtins)
+int help(char **args)
 {
 	int i;
+	builtin_t builtins[] = {
+			{ "cd", "change current working directory: cd [<pathname>]", &cd },
+			{ "exit", "exits out of shell: exit [<status>]", &cexit},
+			{ "env", "prints enviromental variables: env", &env  },
+			{ "help", "print information about builtins: help [<command>]", &help}
+	};
+	int builtin_count = sizeof(builtins) / sizeof(builtin_t);
 
 	if (args[1] != NULL)
 	{
-		for (i = 0; builtins[i].name != NULL; i++)
+		for (i = 0; i < builtin_count; i++)
 			if (_strcmp(args[1], builtins[i].name) == 0)
 			{
 				printBuiltins(builtins[i]);
@@ -57,7 +63,7 @@ int help(char **args, builtin_t *builtins)
 	else
 	{
 		print("Simple Shell\nThe following are built in:\n");
-		for (i = 0; builtins[i].name != NULL; i++)
+		for (i = 0; i < builtin_count; i++)
 			printBuiltins(builtins[i]);
 		print("Use man for other commands\n");
 	}
@@ -70,10 +76,15 @@ int help(char **args, builtin_t *builtins)
  */
 int cexit(char **args)
 {
+	int status;
+
 	if (args[1] == NULL)
-		_exit(errno);
+		status = errno;
 	else
-		_exit(_atoi(args[1]));
+		status = _atoi(args[1]);
+
+	free_all(args);
+	exit(status);
 }
 /**
  * env - prints enviromental variables

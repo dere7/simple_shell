@@ -4,14 +4,6 @@
 
 extern char **environ;
 
-long int readline(char **line);
-char **tokenizer(char *str);
-int execute(char **args);
-
-/* utility functions */
-char *_getenv(char *str);
-char *getpath(char **str);
-
 /* builtins */
 /**
  * struct builtins_s - to manage builtin functions
@@ -27,9 +19,19 @@ typedef struct builtins_s
 	int (*func)(char **args);
 } builtin_t;
 int cd(char **args);
-int help(char **args, builtin_t *builtins);
+int help(char **args);
 int cexit(char **args);
 int env(char **args);
+builtin_t *searchbuiltins(char *built, size_t *len);
+
+long int readline(char **line);
+char **tokenizer(char *str);
+int execute(char **args);
+
+/* utility functions */
+char *_getenv(char *str);
+char *getpath(char **str);
+
 void printBuiltins(builtin_t b);
 
 /* string manipulation */

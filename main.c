@@ -21,9 +21,8 @@ int main(int argc __attribute__((unused)), char *argv[])
 	size_t len = 0;
 	int status;
 
-	/*signal(SIGINT, SIG_IGN);*/
-	do
-	{
+	signal(SIGINT, SIG_IGN);
+	do {
 		fflush(NULL);
 		if (isatty(STDIN_FILENO))
 			print(":) ");
@@ -32,18 +31,19 @@ int main(int argc __attribute__((unused)), char *argv[])
 			break;
 		line[nline - 1] = '\0';
 		tokens = tokenizer(line); /* tokenize*/
-		if (_strstr(line, "exit") != NULL)
+		if (line != NULL)
 		{
-			free_all(tokens);
-			break;
+			free(line);
+			line = NULL;
 		}
 		status = execute(tokens); /* execute*/
 		if (status != 0)
 			perror(argv[0]);
 		free_all(tokens);
 	} while (1);
-	free(line);
-	return (status);
+	if (line != NULL)
+		free(line);
+	return (EXIT_SUCCESS);
 }
 /**
  * readline - reads till new line
@@ -63,12 +63,12 @@ ssize_t readline(char **line)
 }
 /**
  * tokenizer - splits str into tokens
- * @str: string to be tokenzed
+ * @cmd: string to be tokenzed
  * Return: array of token strings
  */
-char **tokenizer(char *str)
+char **tokenizer(char *cmd)
 {
-	char **tokens = NULL, *token;
+	char **tokens = NULL, *token, *str = _strdup(cmd);
 	const char *DELIM = " \t\a\r";
 	size_t position = 0, tok_size = TOKEN_LEN, i;
 
@@ -96,7 +96,7 @@ char **tokenizer(char *str)
 		token = strtok(NULL, DELIM);
 	}
 	tokens[position] = NULL;
-
+	free(str);
 	return (tokens);
 }
 /**
@@ -107,25 +107,23 @@ char **tokenizer(char *str)
 int execute(char **args)
 {
 	pid_t child_pid;
-	int status, i;
-	builtin_t builtin[] = {
-		{ "cd", "change current working directory: cd [<pathname>]", &cd },
-		{ "exit", "exits out of shell: exit [<status>]", &cexit},
-		{ "env", "prints enviromental variables: env", &env  },
-		{NULL, NULL, NULL}
+	int status;
+	builtin_t builtins[] = {
+				{ "cd", "change current working directory: cd [<pathname>]", &cd },
+				{ "exit", "exits out of shell: exit [<status>]", &cexit},
+				{ "env", "prints enviromental variables: env", &env  },
+				{ "help", "print information about builtins: help [<command>]", &help}
 	};
+	size_t i, builtin_count = sizeof(builtins) / sizeof(builtin_t);
 
 	if (args == NULL || args[0] == NULL)
 		return (0);
 
 	/* search for builtins */
-	if (_strcmp(args[0], "help") == 0)
-		return (help(args, builtin));
-
-	for (i = 0; builtin[i].name != NULL; i++)
+	for (i = 0; i < builtin_count; i++)
 	{
-		if (_strcmp(args[0], builtin[i].name) == 0)
-			return (builtin[i].func(args));
+		if (_strcmp(args[0], builtins[i].name) == 0)
+			return (builtins[i].func(args));
 	}
 	if (getpath(&args[0]) == NULL)
 		return (1);
@@ -135,7 +133,7 @@ int execute(char **args)
 
 	if (child_pid == 0)
 	{
-		/*signal(SIGINT, SIG_DFL);*/
+		signal(SIGINT, SIG_DFL);
 		if (execve(args[0], args, __environ) < 0)
 			return (1);
 	}
