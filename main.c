@@ -26,7 +26,7 @@ int main(int argc __attribute__((unused)), char *argv[])
 	{
 		fflush(NULL);
 		if (isatty(STDIN_FILENO))
-			print("($) ");
+			print(":) ");
 		nline = getline(&line, &len, stdin);
 		if (nline < 0)
 			break;
