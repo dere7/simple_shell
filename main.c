@@ -32,12 +32,12 @@ int main(int argc __attribute__((unused)), char *argv[])
 			break;
 		line[nline - 1] = '\0';
 		tokens = tokenizer(line); /* tokenize*/
-		status = execute(tokens); /* execute*/
 		if (_strstr(line, "exit") != NULL)
 		{
 			free_all(tokens);
 			break;
 		}
+		status = execute(tokens); /* execute*/
 		if (status != 0)
 			perror(argv[0]);
 		free_all(tokens);
