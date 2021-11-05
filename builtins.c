@@ -26,7 +26,7 @@ int cd(char **args)
 	}
 	else
 		status = chdir(args[1]);
-
+	free(pwd);
 	return (status);
 }
 /**

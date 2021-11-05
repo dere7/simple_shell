@@ -25,7 +25,7 @@ int main(int argc __attribute__((unused)), char *argv[])
 	do {
 		fflush(NULL);
 		if (isatty(STDIN_FILENO))
-			print("#cisfun$ ");
+			print("($) ");
 		nline = getline(&line, &len, stdin);
 		if (nline < 0)
 			break;
