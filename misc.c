@@ -11,18 +11,19 @@
 char *_getenv(char *name)
 {
 	int i;
-	char *path;
+	char *var = NULL, *envar;
 
-	for (i = 0; __environ[i] != NULL; i++)
+	for (i = 0; environ[i] != NULL && name != NULL; i++)
 	{
-		if (_strstr(__environ[i], name) != NULL)
+		envar = strdup(environ[i]);
+		var = strtok(envar, "=");
+		if (strcmp(var, name) == 0)
 		{
-			path = _strdup(__environ[i] + _strlen(name) + 1);
-			break;
+			var = strdup(strtok(NULL, "="));
+			free(envar);
+			return (var);
 		}
+		free(envar);
 	}
-
-	if (__environ[i] == NULL)
-		return (NULL);
-	return (path);
+	return (NULL);
 }

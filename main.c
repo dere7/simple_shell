@@ -22,7 +22,8 @@ int main(int argc __attribute__((unused)), char *argv[])
 	int status;
 
 	/*signal(SIGINT, SIG_IGN);*/
-	do {
+	do
+	{
 		fflush(NULL);
 		if (isatty(STDIN_FILENO))
 			print("($) ");
@@ -32,6 +33,11 @@ int main(int argc __attribute__((unused)), char *argv[])
 		line[nline - 1] = '\0';
 		tokens = tokenizer(line); /* tokenize*/
 		status = execute(tokens); /* execute*/
+		if (_strstr(line, "exit") != NULL)
+		{
+			free_all(tokens);
+			break;
+		}
 		if (status != 0)
 			perror(argv[0]);
 		free_all(tokens);
@@ -121,9 +127,8 @@ int execute(char **args)
 		if (_strcmp(args[0], builtin[i].name) == 0)
 			return (builtin[i].func(args));
 	}
-	if (getpath(&args[0]) != 0)
+	if (getpath(&args[0]) == NULL)
 		return (1);
-
 	child_pid = fork();
 	if (child_pid < 0)
 		return (1);
@@ -142,37 +147,35 @@ int execute(char **args)
 /**
  * getpath - gets path for str
  * @str: path key
- * Return: status
+ * Return: get path
  */
-int getpath(char **str)
+char *getpath(char **str)
 {
-	int status = 1;
 	char *path, *tok, *cmd;
 	struct stat statbuf;
 
 	if (stat(*str, &statbuf) == 0)
-		return (0);
-	/* get path */
-	path = _getenv("PATH");
-
+		return (*str);
+	path = _getenv("PATH"); /* get path */
 	/* find given string */
 	tok = strtok(path, ":");
 	while (tok != NULL)
 	{
 		/* find if the commmand exists in a path */
-		cmd = _strdup(tok);
-		_strcat(_strcat(cmd, "/"), *str);
+		cmd = malloc(sizeof(char) * (_strlen(tok) + _strlen(*str) + 2));
+		_strcpy(cmd, tok);
+		_strcat(cmd, "/");
+		_strcat(cmd, *str);
 		if (stat(cmd, &statbuf) == 0)
 		{
+			free(path);
 			free(*str);
-			*str = _strdup(cmd);
-			status = 0;
-			break;
+			*str = cmd;
+			return (cmd);
 		}
 		free(cmd);
 		tok = strtok(NULL, ":");
 	}
 	free(path);
-
-	return (status);
+	return (NULL);
 }

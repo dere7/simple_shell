@@ -2,13 +2,15 @@
 #define GUARD_SHELL
 #include <stddef.h>
 
+extern char **environ;
+
 long int readline(char **line);
 char **tokenizer(char *str);
 int execute(char **args);
 
 /* utility functions */
 char *_getenv(char *str);
-int getpath(char **str);
+char *getpath(char **str);
 
 /* builtins */
 /**
@@ -37,6 +39,7 @@ char *_strcat(char *dest, char *src);
 char *_strstr(char *haystack, char *needle);
 int _strlen(char *s);
 int _atoi(char *s);
+char *_strcpy(char *dest, char *src);
 
 /* memory utility */
 char *_memcpy(char *dest, char *src, unsigned int n);
